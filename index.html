@@ -137,7 +137,8 @@ input[type="checkbox"]{
 <body>
 
 <!-- 導覽 -->
-<button onclick="showPage('wordPage')">📘 單字</button>
+<button onclick="showPage('wordPage')">📘 單字管理</button>
+<button onclick="showPage('readPage')">📖 閱讀</button>
 <button onclick="showPage('testPage')">🧠 測驗</button>
 <button onclick="showPage('settingPage')">⚙️ 設定</button>
 
@@ -189,6 +190,14 @@ input[type="checkbox"]{
 
 <div id="result" class="hidden"></div>
 
+</div>
+
+<div id="readPage" class="hidden card">
+  <h2>📖 單字閱讀</h2>
+
+  <select id="readWeek"></select>
+
+  <div id="readList"></div>
 </div>
 
 <!-- 設定 -->
@@ -428,6 +437,59 @@ window.onload=()=>{
   renderWeeks();
 };
 
+function showPage(page){
+  // 先全部隱藏
+  document.querySelectorAll(".card").forEach(p=>{
+    p.classList.add("hidden");
+  });
+
+  // 顯示指定頁面
+  document.getElementById(page).classList.remove("hidden");
+
+  // ⭐ 特別處理閱讀頁
+  if(page === "readPage"){
+    renderReadPage();
+  }
+}
+
+function renderReadPage(){
+  const sel = document.getElementById("readWeek");
+  const list = document.getElementById("readList");
+
+  // 清空
+  sel.innerHTML = "";
+
+  // 填入 week 選單
+  data.weeks.forEach((w,i)=>{
+    sel.innerHTML += `<option value="${i}">${w.name}</option>`;
+  });
+
+  // 切換時更新
+  sel.onchange = renderReadWords;
+
+  // 預設顯示
+  renderReadWords();
+}
+
+function renderReadWords(){
+  const idx = document.getElementById("readWeek").value;
+  const list = document.getElementById("readList");
+
+  list.innerHTML = "";
+
+  data.weeks[idx].words.forEach(w=>{
+    list.innerHTML += `
+    <div class="word">
+      <div class="word-left">
+        <div class="eng">${w.eng}</div>
+        <div class="chi">${w.chi || ""}</div>
+      </div>
+      <div class="word-right">
+        <button onclick="speak('${w.eng}')">🔊</button>
+      </div>
+    </div>`;
+  });
+}
 </script>
 
 </body>
