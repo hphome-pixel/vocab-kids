@@ -119,6 +119,18 @@ body{
   flex:1;
 }
 
+input[type="checkbox"]{
+  transform: scale(1.5);   /* ⭐ 放大 1.5 倍 */
+  margin-right:10px;       /* ⭐ 跟文字留距離 */
+}
+
+#weeks label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  cursor:pointer;
+}
+
 </style>
 
 </head>
@@ -330,14 +342,16 @@ document.addEventListener("DOMContentLoaded",()=>{
 let pool=[],index=0,score=0;
 
 function renderTestWeeks(){
-  const box=document.getElementById("weeks");
-  box.innerHTML="";
-  data.weeks.forEach((w,i)=>{
-    box.innerHTML+=`
-    <div>
+  const box = document.getElementById("weeks");
+  box.innerHTML = "";
+
+  data.weeks.forEach((w, i) => {
+    box.innerHTML += `
+    <label>
       <input type="checkbox" value="${i}" checked>
       ${w.name}
-    </div>`;
+    </label>
+    `;
   });
 }
 
