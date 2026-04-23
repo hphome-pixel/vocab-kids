@@ -131,6 +131,26 @@ input[type="checkbox"]{
   cursor:pointer;
 }
 
+.card-item{
+  background:#0f1b2d;
+  padding:30px;
+  margin-top:15px;
+  border-radius:15px;
+  text-align:center;
+  cursor:pointer;
+}
+
+.card-item .eng{
+  font-size:32px;
+  font-weight:bold;
+}
+
+.card-item .chi{
+  font-size:22px;
+  margin-top:10px;
+  color:#9fb3c8;
+}
+
 </style>
 
 </head>
@@ -196,6 +216,8 @@ input[type="checkbox"]{
   <h2>📖 單字閱讀</h2>
 
   <select id="readWeek"></select>
+
+  <button onclick="autoPlay()">▶ 自動播放</button>
 
   <div id="readList"></div>
 </div>
@@ -477,18 +499,72 @@ function renderReadWords(){
 
   list.innerHTML = "";
 
-  data.weeks[idx].words.forEach(w=>{
+  data.weeks[idx].words.forEach((w,i)=>{
     list.innerHTML += `
-    <div class="word">
-      <div class="word-left">
-        <div class="eng">${w.eng}</div>
-        <div class="chi">${w.chi || ""}</div>
-      </div>
-      <div class="word-right">
-        <button onclick="speak('${w.eng}')">🔊</button>
-      </div>
+    <div class="card-item" onclick="toggleCard(${i})">
+      <div class="eng">${w.eng}</div>
+      <div class="chi hidden" id="chi-${i}">${w.chi || ""}</div>
     </div>`;
   });
+}
+
+function toggleCard(i){
+  const el = document.getElementById("chi-" + i);
+  el.classList.toggle("hidden");
+}
+
+let autoTimer = null;
+
+function autoPlay(){
+  const idx = document.getElementById("readWeek").value;
+  const words = data.weeks[idx].words;
+
+  let i = 0;
+
+  // 清掉之前的播放
+  clearInterval(autoTimer);
+
+  autoTimer = setInterval(() => {
+
+    // 結束條件
+    if(i >= words.length){
+      clearInterval(autoTimer);
+      return;
+    }
+
+    // ⭐ 先清空所有中文（避免全部顯示）
+    document.querySelectorAll(".chi").forEach(c=>{
+      c.classList.add("hidden");
+    });
+
+    // ⭐ 先移除所有高亮
+    document.querySelectorAll(".card-item").forEach(c=>{
+      c.style.background = "#0f1b2d";
+    });
+
+    // ⭐ 播放英文
+    speak(words[i].eng);
+
+    // ⭐ 顯示中文
+    const el = document.getElementById("chi-" + i);
+    if(el){
+      el.classList.remove("hidden");
+    }
+
+    // ⭐ 高亮目前卡片
+    const card = document.getElementById("card-" + i);
+    if(card){
+      card.style.background = "#1f3b5c";
+    }
+
+    i++;
+
+  }, 1500); // 每 1.5 秒
+}
+function speak(text){
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "en-US";
+  speechSynthesis.speak(u);
 }
 </script>
 
