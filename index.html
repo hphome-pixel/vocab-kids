@@ -150,6 +150,17 @@ input[type="checkbox"]{
   margin-top:10px;
   color:#9fb3c8;
 }
+.row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.row button{
+  width:50px;
+  height:50px;
+  padding:0;
+}
 
 </style>
 
@@ -501,9 +512,19 @@ function renderReadWords(){
 
   data.weeks[idx].words.forEach((w,i)=>{
     list.innerHTML += `
-    <div class="card-item" onclick="toggleCard(${i})">
-      <div class="eng">${w.eng}</div>
-      <div class="chi hidden" id="chi-${i}">${w.chi || ""}</div>
+    <div class="card-item" id="card-${i}">
+      
+      <div class="row">
+        <div class="eng" onclick="toggleCard(${i})">${w.eng}</div>
+
+        <!-- ⭐ 發音按鈕 -->
+        <button onclick="event.stopPropagation(); speak('${w.eng}')">🔊</button>
+      </div>
+
+      <div class="chi hidden" id="chi-${i}" onclick="toggleCard(${i})">
+        ${w.chi || ""}
+      </div>
+
     </div>`;
   });
 }
