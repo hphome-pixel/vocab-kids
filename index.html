@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>Vocab Kids</title>
+
+<style>
+body{
+  background:#1e2a3a;
+  color:#fff;
+  font-family:sans-serif;
+  padding:20px;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin:5px 0;
+  border:none;
+  border-radius:10px;
+  background:#3c4b5f;
+  color:white;
+}
+
+input,select{
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:10px;
+  border:none;
+}
+
+.card{
+  background:#2c3e50;
+  padding:20px;
+  border-radius:15px;
+  margin-top:15px;
+}
+
+.word{
+  background:#0f1b2d;
+  padding:15px;
+  margin-top:10px;
+  border-radius:12px;
+  display:flex;
+  justify-content:space-between;
+}
+
+.hidden{display:none;}
+
+.correct{color:#4caf50;}
+.wrong{color:#f44336;}
+</style>
+
+</head>
+<body>
+
+<!-- 導覽 -->
+<button onclick="showPage('wordPage')">📘 單字</button>
+<button onclick="showPage('testPage')">🧠 測驗</button>
+<button onclick="showPage('settingPage')">⚙️ 設定</button>
+
+<!-- 單字 -->
+<div id="wordPage" class="card">
+
+<h2>單字管理</h2>
+
+<select id="weekSelect" onchange="changeWeek(this.value)"></select>
+
+<input id="newWeek" placeholder="新增分類">
+<button onclick="addWeek()">新增</button>
+<button onclick="renameWeek()">改名</button>
+<button onclick="deleteWeek()">刪除</button>
+
+<hr>
+
+<input id="eng" placeholder="英文">
+<input id="chi" placeholder="中文（會自動翻譯）">
+
+<button onclick="addWord()">加入單字</button>
+
+<div id="wordList"></div>
+
+</div>
+
+<!-- 測驗 -->
+<div id="testPage" class="card hidden">
+
+<h2>測驗</h2>
+
+<div id="weeks"></div>
+<button onclick="startTest()">開始測驗</button>
+
+<div id="quizWrap" class="hidden">
+
+<div id="quizQuestion"></div>
+
+<button id="listenBtn">🔊 聽發音</button>
+
+<input id="ans">
+<button id="submitBtn">提交</button>
+<button id="nextBtn" class="hidden">下一題</button>
+
+<div id="quizAnswer"></div>
+<div id="quizProgress"></div>
+
+</div>
+
+<div id="result" class="hidden"></div>
+
+</div>
+
+<!-- 設定 -->
+<div id="settingPage" class="card hidden">
+<h2>設定</h2>
+<button onclick="confirmClear()" style="background:#c62828;">🧹 清空資料</button>
+</div>
+
+<script>
+
+/* ===== 資料 ===== */
+let data = JSON.parse(localStorage.getItem("data")) || {
+  weeks:[{name:"Week 1",words:[]}]
+};
+
+let current=0;
+
+/* ===== 頁面 ===== */
+function showPage(id){
+  ["wordPage","testPage","settingPage"].forEach(p=>{
+    document.getElementById(p).classList.add("hidden");
+  });
+  document.getElementById(id).classList.remove("hidden");
+}
+
+/* ===== 儲存 ===== */
+function save(){
+  localStorage.setItem("data",JSON.stringify(data));
+}
+
+/* ===== 分類 ===== */
+function renderWeeks(){
+  const sel=document.getElementById("weekSelect");
+  sel.innerHTML="";
+
+  data.weeks.forEach((w,i)=>{
+    sel.innerHTML+=`<option value="${i}">${w.name}</option>`;
+  });
+
+  renderWords();
+  renderTestWeeks();
+}
+
+function changeWeek(i){
+  current=i;
+  renderWords();
+}
+
+function addWeek(){
+  const name=document.getElementById("newWeek").value.trim();
+  if(!name)return;
+  data.weeks.push({name,words:[]});
+  save();
+  renderWeeks();
+}
+
+function renameWeek(){
+  const name=document.getElementById("newWeek").value.trim();
+  if(!name)return;
+  data.weeks[current].name=name;
+  save();
+  renderWeeks();
+}
+
+function deleteWeek(){
+  if(data.weeks.length===1)return;
+  data.weeks.splice(current,1);
+  current=0;
+  save();
+  renderWeeks();
+}
+
+/* ===== 單字 ===== */
+function renderWords(){
+  const list=document.getElementById("wordList");
+  list.innerHTML="";
+
+  data.weeks[current].words.forEach((w,i)=>{
+    list.innerHTML+=`
+    <div class="word">
+      <div>
+        <div>${w.eng}</div>
+        <div>${w.chi||""}</div>
+      </div>
+      <div>
+        <button onclick="speak('${w.eng}')">🔊</button>
+        <button onclick="delWord(${i})">🗑️</button>
+      </div>
+    </div>`;
+  });
+}
+
+function addWord(){
+  const eng=document.getElementById("eng").value.trim();
+  const chi=document.getElementById("chi").value.trim();
+  if(!eng)return;
+
+  data.weeks[current].words.push({eng,chi});
+  save();
+  renderWords();
+
+  document.getElementById("eng").value="";
+  document.getElementById("chi").value="";
+}
+
+function delWord(i){
+  data.weeks[current].words.splice(i,1);
+  save();
+  renderWords();
+}
+
+/* ===== 發音 ===== */
+function speak(word){
+  const msg=new SpeechSynthesisUtterance(word);
+  msg.lang="en-US";
+  speechSynthesis.speak(msg);
+}
+
+/* ===== 翻譯 ===== */
+let timer;
+
+document.addEventListener("DOMContentLoaded",()=>{
+
+  const eng=document.getElementById("eng");
+  const chi=document.getElementById("chi");
+
+  eng.addEventListener("input",()=>{
+    clearTimeout(timer);
+    const text=eng.value.trim();
+    if(!text){chi.value="";return;}
+
+    timer=setTimeout(async()=>{
+      try{
+        const res=await fetch(
+          "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q="+encodeURIComponent(text)
+        );
+        const data=await res.json();
+        chi.value=data[0].map(x=>x[0]).join("");
+      }catch{}
+    },400);
+  });
+});
+
+/* ===== 測驗 ===== */
+let pool=[],index=0,score=0;
+
+function renderTestWeeks(){
+  const box=document.getElementById("weeks");
+  box.innerHTML="";
+  data.weeks.forEach((w,i)=>{
+    box.innerHTML+=`
+    <div>
+      <input type="checkbox" value="${i}" checked>
+      ${w.name}
+    </div>`;
+  });
+}
+
+function startTest(){
+  pool=[];
+  document.querySelectorAll("#weeks input:checked").forEach(c=>{
+    pool.push(...data.weeks[c.value].words);
+  });
+
+  if(pool.length===0){alert("沒單字");return;}
+
+  pool.sort(()=>Math.random()-0.5);
+  index=0;
+  score=0;
+
+  document.getElementById("quizWrap").classList.remove("hidden");
+  document.getElementById("result").classList.add("hidden");
+
+  nextQuestion();
+}
+
+function nextQuestion(){
+
+  if(index>=pool.length){
+    document.getElementById("quizWrap").classList.add("hidden");
+    document.getElementById("result").classList.remove("hidden");
+    document.getElementById("result").innerHTML=`🎯 成績：${score}/${pool.length}`;
+    return;
+  }
+
+  const q=pool[index];
+
+  document.getElementById("quizQuestion").innerHTML=`提示：${q.chi||"聽發音"}`;
+  document.getElementById("ans").value="";
+  document.getElementById("quizAnswer").innerHTML="";
+  document.getElementById("quizProgress").innerHTML=`${index+1}/${pool.length}`;
+
+  document.getElementById("listenBtn").onclick=()=>speak(q.eng);
+}
+
+document.getElementById("submitBtn").onclick=()=>{
+  const input=document.getElementById("ans").value.trim().toLowerCase();
+  const correct=pool[index].eng.toLowerCase();
+  const result=document.getElementById("quizAnswer");
+
+  if(input===correct){
+    score++;
+    result.innerHTML="✅ 正確";
+    result.className="correct";
+  }else{
+    result.innerHTML=`❌ 正確答案：${correct}`;
+    result.className="wrong";
+  }
+
+  document.getElementById("nextBtn").classList.remove("hidden");
+};
+
+document.getElementById("nextBtn").onclick=()=>{
+  index++;
+  document.getElementById("nextBtn").classList.add("hidden");
+  nextQuestion();
+};
+
+/* ===== 清空 ===== */
+function confirmClear(){
+  if(!confirm("⚠️ 清空全部資料？")) return;
+  if(prompt("輸入 DELETE 才清除")!=="DELETE") return;
+  localStorage.clear();
+  location.reload();
+}
+
+/* ===== 初始化 ===== */
+window.onload=()=>{
+  renderWeeks();
+};
+
+</script>
+
+</body>
+</html>
