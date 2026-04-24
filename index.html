@@ -720,11 +720,17 @@ let audioPlayer = new Audio();
 function speak(text){
   const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
 
-  audioPlayer.pause();        // ⭐ 停掉之前的
+  audioPlayer.pause();
   audioPlayer.currentTime = 0;
-
   audioPlayer.src = url;
-  audioPlayer.play();
+
+  audioPlayer.play().catch(() => {
+    // ⭐ 如果 Google 被擋 → 用內建語音
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "en-US";
+    u.rate = 0.85;
+    speechSynthesis.speak(u);
+  });
 }
 
 function speakZH(text){
@@ -732,9 +738,14 @@ function speakZH(text){
 
   audioPlayer.pause();
   audioPlayer.currentTime = 0;
-
   audioPlayer.src = url;
-  audioPlayer.play();
+
+  audioPlayer.play().catch(() => {
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "zh-TW";
+    u.rate = 0.9;
+    speechSynthesis.speak(u);
+  });
 }
 
 function speakWord(word){
