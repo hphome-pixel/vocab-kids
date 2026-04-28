@@ -502,7 +502,41 @@ function unlockAudio(){
     .catch(()=>{});
 }
 
+speechSynthesis.onvoiceschanged = () => {
+
+  const voices = speechSynthesis.getVoices();
+
+  iosVoice =
+
+    voices.find(v =>
+      v.name.includes("Evan") &&
+      v.name.includes("Enhanced")
+    ) ||
+
+    voices.find(v =>
+      v.name.includes("Samantha") &&
+      v.name.includes("Enhanced")
+    ) ||
+
+    voices.find(v =>
+      v.name.includes("Evan")
+    ) ||
+
+    voices.find(v =>
+      v.name.includes("Samantha")
+    ) ||
+
+    voices.find(v =>
+      v.lang === "en-US"
+    );
+
+  console.log("iOS voice loaded:", iosVoice);
+};
+
 document.addEventListener("DOMContentLoaded",()=>{
+
+    // ⭐ 強制載入 iOS voices
+  speechSynthesis.getVoices();
 
   // ⭐ iPhone 第一次觸碰解鎖音訊
   document.body.addEventListener(
@@ -707,6 +741,8 @@ function toggleCard(i){
 
 let autoTimer = null;
 
+let iosVoice = null;
+
 function autoPlay(){
   const idx = document.getElementById("readWeek").value;
   const words = data.weeks[idx].words;
@@ -751,7 +787,7 @@ function autoPlay(){
 
     i++;
 
-  }, 1500); // 每 1.5 秒
+  }, 3500); // 每 3.5 秒
 }
 let audioPlayer = new Audio(
   "https://translate.google.com/translate_tts?ie=UTF-8&q=test&tl=en&client=tw-ob"
@@ -759,61 +795,56 @@ let audioPlayer = new Audio(
 
 function speak(text){
 
-  // ⭐ iPhone / iPad 用 Safari 原生語音
+  // ⭐ iPhone / iPad
   const isIOS =
     /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   if(isIOS){
 
+    // ⭐ 如果正在講才 cancel
+    if(speechSynthesis.speaking){
+      speechSynthesis.cancel();
+    }
+
     const u = new SpeechSynthesisUtterance(text);
 
-    const voices = speechSynthesis.getVoices();
+    // ⭐ 使用已快取的高品質 voice
+    if(iosVoice){
+      u.voice = iosVoice;
+    }
 
-    u.voice =
-
-      // ⭐ Evan Enhanced
-      voices.find(v =>
-        v.name.includes("Evan") &&
-        v.name.includes("Enhanced")
-      ) ||
-
-      // ⭐ fallback
-      voices.find(v => v.name.includes("Samantha")) ||
-
-      voices.find(v => v.lang === "en-US");
-
-    // ⭐ 很重要
     u.lang = "en-US";
 
-    // ⭐ 比較自然
+    // ⭐ 最自然
     u.rate = 0.92;
 
     u.pitch = 1;
 
     u.volume = 1;
 
-    speechSynthesis.cancel();
-
+    // ⭐ 延遲避免 iPhone 吃音
     setTimeout(()=>{
       speechSynthesis.speak(u);
-    },50);
+    },80);
 
     return;
   }
 
-  // ⭐ PC / Android 用 Google TTS
+  // ⭐ Windows / Android 用 Google 真人 TTS
   const url =
-  `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
+    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
 
   audioPlayer.pause();
   audioPlayer.currentTime = 0;
 
+  // ⭐ 避免 iPhone/Safari 一直重建 audio
   if(audioPlayer.src !== url){
     audioPlayer.src = url;
   }
 
   audioPlayer.play().catch(() => {
 
+    // ⭐ fallback
     const u = new SpeechSynthesisUtterance(text);
 
     u.lang = "en-US";
@@ -830,44 +861,63 @@ function speakZH(text){
 
   if(isIOS){
 
-    speechSynthesis.cancel();
+    // ⭐ 避免中文把英文 voice 弄壞
+    if(speechSynthesis.speaking){
+      speechSynthesis.cancel();
+    }
 
     const u = new SpeechSynthesisUtterance(text);
 
     u.lang = "zh-TW";
-    u.rate = 0.9;
 
-    speechSynthesis.speak(u);
+    // ⭐ 中文慢一點比較清楚
+    u.rate = 0.88;
+
+    u.pitch = 1;
+
+    u.volume = 1;
+
+    setTimeout(()=>{
+      speechSynthesis.speak(u);
+    },80);
 
     return;
   }
 
+  // ⭐ PC / Android 中文真人 TTS
   const url =
-  `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-TW&client=tw-ob`;
+    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-TW&client=tw-ob`;
 
   audioPlayer.pause();
   audioPlayer.currentTime = 0;
-  audioPlayer.src = url;
+
+  if(audioPlayer.src !== url){
+    audioPlayer.src = url;
+  }
 
   audioPlayer.play().catch(() => {
 
     const u = new SpeechSynthesisUtterance(text);
 
     u.lang = "zh-TW";
-    u.rate = 0.9;
+    u.rate = 0.88;
 
     speechSynthesis.speak(u);
   });
 }
 
 function speakWord(word){
+
   speak(word.eng);
 
   setTimeout(()=>{
+
     if(word.chi){
       speakZH(word.chi);
     }
-  }, 900);
+
+  },1800);
+
 }
 </script>
 
