@@ -771,24 +771,22 @@ function speak(text){
 
   u.voice =
     voices.find(v => v.name.includes("Samantha")) ||
-    voices.find(v => v.lang === "en-GB") ||
     voices.find(v => v.lang === "en-US");
 
-  u.lang = "en-GB";
+  u.lang = "en-US";
 
-  // ⭐ 更自然
-  u.rate = 0.82;
+  // ⭐ 比較自然
+  u.rate = 0.92;
 
-  // ⭐ 音調
   u.pitch = 1;
 
-  // ⭐ 只 cancel 一次
+  u.volume = 1;
+
   speechSynthesis.cancel();
 
-  // ⭐ 稍微延遲避免 iPhone 吃掉聲音
   setTimeout(()=>{
     speechSynthesis.speak(u);
-  }, 80);
+  },50);
 
   return;
 }
