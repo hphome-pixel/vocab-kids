@@ -484,28 +484,65 @@ function delWord(i){
 
 
 /* ===== 翻譯 ===== */
+/* ===== 翻譯 ===== */
 let timer;
 
+// ⭐ iPhone audio unlock
+function unlockAudio(){
+
+  audioPlayer.play()
+    .then(() => {
+
+      audioPlayer.pause();
+      audioPlayer.currentTime = 0;
+
+      console.log("audio unlocked");
+
+    })
+    .catch(()=>{});
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
+
+  // ⭐ iPhone 第一次觸碰解鎖音訊
+  document.body.addEventListener(
+    "touchstart",
+    unlockAudio,
+    { once:true }
+  );
 
   const eng=document.getElementById("eng");
   const chi=document.getElementById("chi");
 
   eng.addEventListener("input",()=>{
+
     clearTimeout(timer);
+
     const text=eng.value.trim();
-    if(!text){chi.value="";return;}
+
+    if(!text){
+      chi.value="";
+      return;
+    }
 
     timer=setTimeout(async()=>{
+
       try{
+
         const res=await fetch(
           "https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=zh-TW&dt=t&q="+encodeURIComponent(text)
         );
+
         const data=await res.json();
+
         chi.value=data[0].map(x=>x[0]).join("");
+
       }catch{}
+
     },400);
+
   });
+
 });
 
 /* ===== 測驗 ===== */
@@ -716,7 +753,9 @@ function autoPlay(){
 
   }, 1500); // 每 1.5 秒
 }
-let audioPlayer = new Audio();
+let audioPlayer = new Audio(
+  "https://translate.google.com/translate_tts?ie=UTF-8&q=test&tl=en&client=tw-ob"
+);
 
 function speak(text){
 
