@@ -481,12 +481,7 @@ function delWord(i){
   renderWords();
 }
 
-/* ===== 發音 ===== */
-function speak(word){
-  const msg=new SpeechSynthesisUtterance(word);
-  msg.lang="en-US";
-  speechSynthesis.speak(msg);
-}
+
 
 /* ===== 翻譯 ===== */
 let timer;
@@ -718,32 +713,79 @@ function autoPlay(){
 let audioPlayer = new Audio();
 
 function speak(text){
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
+
+  // ⭐ iPhone / iPad 用 Safari 原生語音
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  if(isIOS){
+
+    speechSynthesis.cancel();
+
+    const u = new SpeechSynthesisUtterance(text);
+
+    u.lang = "en-US";
+    u.rate = 0.85;
+    u.pitch = 1;
+
+    speechSynthesis.speak(u);
+
+    return;
+  }
+
+  // ⭐ PC / Android 用 Google TTS
+  const url =
+  `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
 
   audioPlayer.pause();
   audioPlayer.currentTime = 0;
   audioPlayer.src = url;
 
   audioPlayer.play().catch(() => {
-    // ⭐ 如果 Google 被擋 → 用內建語音
+
+    // ⭐ fallback
     const u = new SpeechSynthesisUtterance(text);
+
     u.lang = "en-US";
     u.rate = 0.85;
+
     speechSynthesis.speak(u);
   });
 }
 
 function speakZH(text){
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-TW&client=tw-ob`;
+
+  const isIOS =
+    /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+  if(isIOS){
+
+    speechSynthesis.cancel();
+
+    const u = new SpeechSynthesisUtterance(text);
+
+    u.lang = "zh-TW";
+    u.rate = 0.9;
+
+    speechSynthesis.speak(u);
+
+    return;
+  }
+
+  const url =
+  `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-TW&client=tw-ob`;
 
   audioPlayer.pause();
   audioPlayer.currentTime = 0;
   audioPlayer.src = url;
 
   audioPlayer.play().catch(() => {
+
     const u = new SpeechSynthesisUtterance(text);
+
     u.lang = "zh-TW";
     u.rate = 0.9;
+
     speechSynthesis.speak(u);
   });
 }
