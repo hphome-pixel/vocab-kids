@@ -368,8 +368,25 @@ input[type="checkbox"]{
 
 <!-- 設定 -->
 <div id="settingPage" class="card hidden">
+
 <h2>設定</h2>
-<button onclick="confirmClear()" style="background:#c62828;">🧹 清空資料</button>
+
+<h3>英文發音</h3>
+
+<select id="voiceSelect" onchange="changeVoice(this.value)">
+
+  <option value="evan">Evan 👨</option>
+
+  <option value="samantha">Samantha 👩</option>
+
+</select>
+
+<br><br>
+
+<button onclick="confirmClear()" style="background:#c62828;">
+🧹 清空資料
+</button>
+
 </div>
 
 <script>
@@ -506,31 +523,41 @@ speechSynthesis.onvoiceschanged = () => {
 
   const voices = speechSynthesis.getVoices();
 
-  iosVoice =
+  if(voiceMode === "evan"){
 
-    voices.find(v =>
-      v.name.includes("Evan") &&
-      v.name.includes("Enhanced")
-    ) ||
+    iosVoice =
 
-    voices.find(v =>
-      v.name.includes("Samantha") &&
-      v.name.includes("Enhanced")
-    ) ||
+      voices.find(v =>
+        v.name.includes("Evan") &&
+        v.name.includes("Enhanced")
+      ) ||
 
-    voices.find(v =>
-      v.name.includes("Evan")
-    ) ||
+      voices.find(v =>
+        v.name.includes("Evan")
+      );
 
-    voices.find(v =>
-      v.name.includes("Samantha")
-    ) ||
+  }else{
 
-    voices.find(v =>
-      v.lang === "en-US"
-    );
+    iosVoice =
 
-  console.log("iOS voice loaded:", iosVoice);
+      voices.find(v =>
+        v.name.includes("Samantha") &&
+        v.name.includes("Enhanced")
+      ) ||
+
+      voices.find(v =>
+        v.name.includes("Samantha")
+      );
+  }
+
+  // fallback
+  if(!iosVoice){
+
+    iosVoice =
+      voices.find(v => v.lang === "en-US");
+  }
+
+  console.log("voice:", iosVoice);
 };
 
 document.addEventListener("DOMContentLoaded",()=>{
@@ -544,6 +571,9 @@ document.addEventListener("DOMContentLoaded",()=>{
     unlockAudio,
     { once:true }
   );
+
+  document.getElementById("voiceSelect").value =
+  voiceMode;
 
   const eng=document.getElementById("eng");
   const chi=document.getElementById("chi");
@@ -743,6 +773,9 @@ let autoTimer = null;
 
 let iosVoice = null;
 
+let voiceMode =
+  localStorage.getItem("voiceMode") || "evan";
+
 function autoPlay(){
   const idx = document.getElementById("readWeek").value;
   const words = data.weeks[idx].words;
@@ -917,6 +950,18 @@ function speakWord(word){
     }
 
   },1800);
+
+}
+
+function changeVoice(mode){
+
+  voiceMode = mode;
+
+  localStorage.setItem("voiceMode", mode);
+
+  speechSynthesis.getVoices();
+
+  speechSynthesis.onvoiceschanged();
 
 }
 </script>
