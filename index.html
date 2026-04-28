@@ -481,32 +481,7 @@ function delWord(i){
   renderWords();
 }
 
-<<<<<<< HEAD
 
-=======
-/* ===== 發音 ===== */
-function speak(text){
-  const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
-
-  audioPlayer.pause();
-  audioPlayer.currentTime = 0;
-  audioPlayer.src = url;
-
-  // ⭐ 先嘗試 Google
-  audioPlayer.play().then(()=>{
-    console.log("Google TTS OK");
-  }).catch(()=>{
-    console.log("Fallback to browser voice");
-
-    // ⭐ 強制 fallback（一定會發聲）
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "en-US";
-    u.rate = 0.85;
-    speechSynthesis.cancel();   // ⭐ 防卡住
-    speechSynthesis.speak(u);
-  });
-}
->>>>>>> e934f8530164d39c89e7c55b77e62be928a044b7
 
 /* ===== 翻譯 ===== */
 let timer;
