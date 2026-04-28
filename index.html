@@ -765,27 +765,33 @@ function speak(text){
 
   if(isIOS){
 
-    speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
 
-    const u = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
 
-    speechSynthesis.cancel();
-
-    const voices = speechSynthesis.getVoices();
-
-    u.voice =
+  u.voice =
     voices.find(v => v.name.includes("Samantha")) ||
     voices.find(v => v.lang === "en-GB") ||
     voices.find(v => v.lang === "en-US");
 
-    u.lang = "en-GB";
-    u.rate = 0.72;
-    u.pitch = 1;
+  u.lang = "en-GB";
 
+  // ⭐ 更自然
+  u.rate = 0.82;
+
+  // ⭐ 音調
+  u.pitch = 1;
+
+  // ⭐ 只 cancel 一次
+  speechSynthesis.cancel();
+
+  // ⭐ 稍微延遲避免 iPhone 吃掉聲音
+  setTimeout(()=>{
     speechSynthesis.speak(u);
+  }, 80);
 
-    return;
-  }
+  return;
+}
 
   // ⭐ PC / Android 用 Google TTS
   const url =
