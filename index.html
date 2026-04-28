@@ -564,6 +564,12 @@ document.addEventListener("DOMContentLoaded",()=>{
 
     // ⭐ 強制載入 iOS voices
   speechSynthesis.getVoices();
+  
+  setTimeout(()=>{
+
+  changeVoice(voiceMode);
+
+},500);
 
   // ⭐ iPhone 第一次觸碰解鎖音訊
   document.body.addEventListener(
@@ -959,10 +965,45 @@ function changeVoice(mode){
 
   localStorage.setItem("voiceMode", mode);
 
-  speechSynthesis.getVoices();
+  const voices = speechSynthesis.getVoices();
 
-  speechSynthesis.onvoiceschanged();
+  // ⭐ Evan
+  if(mode === "evan"){
 
+    iosVoice =
+
+      voices.find(v =>
+        v.name.includes("Evan") &&
+        v.name.includes("Enhanced")
+      ) ||
+
+      voices.find(v =>
+        v.name.includes("Evan")
+      );
+
+  }else{
+
+    // ⭐ Samantha
+    iosVoice =
+
+      voices.find(v =>
+        v.name.includes("Samantha") &&
+        v.name.includes("Enhanced")
+      ) ||
+
+      voices.find(v =>
+        v.name.includes("Samantha")
+      );
+  }
+
+  // ⭐ fallback
+  if(!iosVoice){
+
+    iosVoice =
+      voices.find(v => v.lang === "en-US");
+  }
+
+  console.log("changed voice:", iosVoice);
 }
 </script>
 
