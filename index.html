@@ -646,7 +646,7 @@ function renderReadWords(){
         <div class="eng" onclick="toggleCard(${i})">${w.eng}</div>
 
         <!-- ⭐ 發音按鈕 -->
-        <button onclick="event.stopPropagation(); speak('${w.eng}')">🔊</button>
+        <button onclick='speak("${w.eng}")'>🔊</button>
       </div>
 
       <div class="chi hidden" id="chi-${i}" onclick="toggleCard(${i})">
@@ -658,8 +658,14 @@ function renderReadWords(){
 }
 
 function toggleCard(i){
+
   const el = document.getElementById("chi-" + i);
-  el.classList.toggle("hidden");
+
+  if(el.classList.contains("hidden")){
+    el.classList.remove("hidden");
+  }else{
+    el.classList.add("hidden");
+  }
 }
 
 let autoTimer = null;
@@ -724,8 +730,17 @@ function speak(text){
 
     const u = new SpeechSynthesisUtterance(text);
 
-    u.lang = "en-US";
-    u.rate = 0.85;
+    speechSynthesis.cancel();
+
+    const voices = speechSynthesis.getVoices();
+
+    u.voice =
+    voices.find(v => v.name.includes("Samantha")) ||
+    voices.find(v => v.lang === "en-GB") ||
+    voices.find(v => v.lang === "en-US");
+
+    u.lang = "en-GB";
+    u.rate = 0.72;
     u.pitch = 1;
 
     speechSynthesis.speak(u);
