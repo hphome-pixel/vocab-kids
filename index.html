@@ -491,25 +491,32 @@ function delWord(i){
 
 
 /* ===== 翻譯 ===== */
-/* ===== 翻譯 ===== */
 let timer;
 
-// ⭐ iPhone audio unlock
-function unlockAudio(){
+function loadIOSVoice(){
 
-  audioPlayer.play()
-    .then(() => {
+  const voices = speechSynthesis.getVoices();
 
-      audioPlayer.pause();
-      audioPlayer.currentTime = 0;
+  iosVoice =
 
-      console.log("audio unlocked");
+    voices.find(v =>
+      v.name.includes("Evan") &&
+      v.name.includes("Enhanced")
+    ) ||
 
-    })
-    .catch(()=>{});
+    voices.find(v =>
+      v.name.includes("Evan")
+    ) ||
+
+    voices.find(v =>
+      v.lang === "en-US"
+    );
+
+  console.log("iosVoice:", iosVoice);
 }
 
-speechSynthesis.onvoiceschanged = () => {
+speechSynthesis.onvoiceschanged = loadIOSVoice;
+
 
   const voices = speechSynthesis.getVoices();
 
@@ -538,9 +545,9 @@ document.addEventListener("DOMContentLoaded",()=>{
 
   setTimeout(()=>{
 
-  speechSynthesis.onvoiceschanged();
+  loadIOSVoice();
 
-  },500);
+},1000);
 
   // ⭐ iPhone 第一次觸碰解鎖音訊
   document.body.addEventListener(
@@ -549,8 +556,6 @@ document.addEventListener("DOMContentLoaded",()=>{
     { once:true }
   );
 
-  document.getElementById("voiceSelect").value =
-  voiceMode;
 
   const eng=document.getElementById("eng");
   const chi=document.getElementById("chi");
