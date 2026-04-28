@@ -371,16 +371,6 @@ input[type="checkbox"]{
 
 <h2>設定</h2>
 
-<h3>英文發音</h3>
-
-<select id="voiceSelect" onchange="changeVoice(this.value)">
-
-  <option value="evan">Evan 👨</option>
-
-  <option value="samantha">Samantha 👩</option>
-
-</select>
-
 <br><br>
 
 <button onclick="confirmClear()" style="background:#c62828;">
@@ -523,53 +513,34 @@ speechSynthesis.onvoiceschanged = () => {
 
   const voices = speechSynthesis.getVoices();
 
-  if(voiceMode === "evan"){
+  iosVoice =
 
-    iosVoice =
+    voices.find(v =>
+      v.name.includes("Evan") &&
+      v.name.includes("Enhanced")
+    ) ||
 
-      voices.find(v =>
-        v.name.includes("Evan") &&
-        v.name.includes("Enhanced")
-      ) ||
+    voices.find(v =>
+      v.name.includes("Evan")
+    ) ||
 
-      voices.find(v =>
-        v.name.includes("Evan")
-      );
+    voices.find(v =>
+      v.lang === "en-US"
+    );
 
-  }else{
-
-    iosVoice =
-
-      voices.find(v =>
-        v.name.includes("Samantha") &&
-        v.name.includes("Enhanced")
-      ) ||
-
-      voices.find(v =>
-        v.name.includes("Samantha")
-      );
-  }
-
-  // fallback
-  if(!iosVoice){
-
-    iosVoice =
-      voices.find(v => v.lang === "en-US");
-  }
-
-  console.log("voice:", iosVoice);
+  console.log("iosVoice:", iosVoice);
 };
 
 document.addEventListener("DOMContentLoaded",()=>{
 
     // ⭐ 強制載入 iOS voices
   speechSynthesis.getVoices();
-  
+
   setTimeout(()=>{
 
-  changeVoice(voiceMode);
+  speechSynthesis.onvoiceschanged();
 
-},500);
+  },500);
 
   // ⭐ iPhone 第一次觸碰解鎖音訊
   document.body.addEventListener(
@@ -779,9 +750,6 @@ let autoTimer = null;
 
 let iosVoice = null;
 
-let voiceMode =
-  localStorage.getItem("voiceMode") || "evan";
-
 function autoPlay(){
   const idx = document.getElementById("readWeek").value;
   const words = data.weeks[idx].words;
@@ -959,52 +927,6 @@ function speakWord(word){
 
 }
 
-function changeVoice(mode){
-
-  voiceMode = mode;
-
-  localStorage.setItem("voiceMode", mode);
-
-  const voices = speechSynthesis.getVoices();
-
-  // ⭐ Evan
-  if(mode === "evan"){
-
-    iosVoice =
-
-      voices.find(v =>
-        v.name.includes("Evan") &&
-        v.name.includes("Enhanced")
-      ) ||
-
-      voices.find(v =>
-        v.name.includes("Evan")
-      );
-
-  }else{
-
-    // ⭐ Samantha
-    iosVoice =
-
-      voices.find(v =>
-        v.name.includes("Samantha") &&
-        v.name.includes("Enhanced")
-      ) ||
-
-      voices.find(v =>
-        v.name.includes("Samantha")
-      );
-  }
-
-  // ⭐ fallback
-  if(!iosVoice){
-
-    iosVoice =
-      voices.find(v => v.lang === "en-US");
-  }
-
-  console.log("changed voice:", iosVoice);
-}
 </script>
 
 </body>
