@@ -765,31 +765,47 @@ function speak(text){
 
   if(isIOS){
 
-  const u = new SpeechSynthesisUtterance(text);
+    const u = new SpeechSynthesisUtterance(text);
 
-  const voices = speechSynthesis.getVoices();
+    const voices = speechSynthesis.getVoices();
 
-  u.voice =
-    voices.find(v => v.name.includes("Samantha")) ||
-    voices.find(v => v.lang === "en-US");
+    u.voice =
 
-  u.lang = "en-US";
+      // ⭐ Evan Enhanced
+      voices.find(v =>
+        v.name.includes("Evan") &&
+        v.name.includes("Enhanced")
+      ) ||
 
-  // ⭐ 比較自然
-  u.rate = 0.92;
+      // ⭐ Samantha Enhanced
+      voices.find(v =>
+        v.name.includes("Samantha") &&
+        v.name.includes("Enhanced")
+      ) ||
 
-  u.pitch = 1;
+      // ⭐ fallback
+      voices.find(v => v.name.includes("Samantha")) ||
 
-  u.volume = 1;
+      voices.find(v => v.lang === "en-US");
 
-  speechSynthesis.cancel();
+    // ⭐ 很重要
+    u.lang = "en-US";
 
-  setTimeout(()=>{
-    speechSynthesis.speak(u);
-  },50);
+    // ⭐ 比較自然
+    u.rate = 0.92;
 
-  return;
-}
+    u.pitch = 1;
+
+    u.volume = 1;
+
+    speechSynthesis.cancel();
+
+    setTimeout(()=>{
+      speechSynthesis.speak(u);
+    },50);
+
+    return;
+  }
 
   // ⭐ PC / Android 用 Google TTS
   const url =
@@ -797,15 +813,17 @@ function speak(text){
 
   audioPlayer.pause();
   audioPlayer.currentTime = 0;
-  audioPlayer.src = url;
+
+  if(audioPlayer.src !== url){
+    audioPlayer.src = url;
+  }
 
   audioPlayer.play().catch(() => {
 
-    // ⭐ fallback
     const u = new SpeechSynthesisUtterance(text);
 
     u.lang = "en-US";
-    u.rate = 0.85;
+    u.rate = 0.92;
 
     speechSynthesis.speak(u);
   });
