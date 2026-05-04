@@ -840,6 +840,20 @@ let audioPlayer = new Audio(
   "https://translate.google.com/translate_tts?ie=UTF-8&q=test&tl=en&client=tw-ob"
 );
 
+function playGoogleTTS(text, lang){
+  const url =
+    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${lang}&client=tw-ob`;
+
+  audioPlayer.pause();
+  audioPlayer.currentTime = 0;
+
+  if(audioPlayer.src !== url){
+    audioPlayer.src = url;
+  }
+
+  return audioPlayer.play();
+}
+
 function speak(text){
 
   // ⭐ iPhone / iPad
@@ -847,49 +861,34 @@ function speak(text){
     /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   if(isIOS){
+    playGoogleTTS(text, "en").catch(() => {
 
-    // ⭐ 如果正在講才 cancel
-    if(speechSynthesis.speaking){
-      speechSynthesis.cancel();
-    }
+      // ⭐ 如果 Google TTS 被 iPhone 擋住，才 fallback 到內建語音
+      if(speechSynthesis.speaking){
+        speechSynthesis.cancel();
+      }
 
-    const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(text);
 
-    // ⭐ 使用已快取的高品質 voice
-    if(iosVoice){
-      u.voice = iosVoice;
-    }
+      if(iosVoice){
+        u.voice = iosVoice;
+      }
 
-    u.lang = iosVoice?.lang || "en-US";
+      u.lang = iosVoice?.lang || "en-US";
+      u.rate = 0.84;
+      u.pitch = 1.05;
+      u.volume = 1;
 
-    // ⭐ 最自然
-    u.rate = 0.84;
-
-    u.pitch = 1.05;
-
-    u.volume = 1;
-
-    // ⭐ 延遲避免 iPhone 吃音
-    setTimeout(()=>{
-      speechSynthesis.speak(u);
-    },80);
+      setTimeout(()=>{
+        speechSynthesis.speak(u);
+      },80);
+    });
 
     return;
   }
 
   // ⭐ Windows / Android 用 Google 真人 TTS
-  const url =
-    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=en&client=tw-ob`;
-
-  audioPlayer.pause();
-  audioPlayer.currentTime = 0;
-
-  // ⭐ 避免 iPhone/Safari 一直重建 audio
-  if(audioPlayer.src !== url){
-    audioPlayer.src = url;
-  }
-
-  audioPlayer.play().catch(() => {
+  playGoogleTTS(text, "en").catch(() => {
 
     // ⭐ fallback
     const u = new SpeechSynthesisUtterance(text);
@@ -907,42 +906,30 @@ function speakZH(text){
     /iPad|iPhone|iPod/.test(navigator.userAgent);
 
   if(isIOS){
+    playGoogleTTS(text, "zh-TW").catch(() => {
 
-    // ⭐ 避免中文把英文 voice 弄壞
-    if(speechSynthesis.speaking){
-      speechSynthesis.cancel();
-    }
+      // ⭐ 避免中文把英文 voice 弄壞
+      if(speechSynthesis.speaking){
+        speechSynthesis.cancel();
+      }
 
-    const u = new SpeechSynthesisUtterance(text);
+      const u = new SpeechSynthesisUtterance(text);
 
-    u.lang = "zh-TW";
+      u.lang = "zh-TW";
+      u.rate = 0.88;
+      u.pitch = 1;
+      u.volume = 1;
 
-    // ⭐ 中文慢一點比較清楚
-    u.rate = 0.88;
-
-    u.pitch = 1;
-
-    u.volume = 1;
-
-    setTimeout(()=>{
-      speechSynthesis.speak(u);
-    },80);
+      setTimeout(()=>{
+        speechSynthesis.speak(u);
+      },80);
+    });
 
     return;
   }
 
   // ⭐ PC / Android 中文真人 TTS
-  const url =
-    `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=zh-TW&client=tw-ob`;
-
-  audioPlayer.pause();
-  audioPlayer.currentTime = 0;
-
-  if(audioPlayer.src !== url){
-    audioPlayer.src = url;
-  }
-
-  audioPlayer.play().catch(() => {
+  playGoogleTTS(text, "zh-TW").catch(() => {
 
     const u = new SpeechSynthesisUtterance(text);
 
