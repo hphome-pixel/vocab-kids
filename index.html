@@ -375,6 +375,8 @@ input[type="checkbox"]{
 
 <button onclick="showAvailableVoices()">查看可用英文聲音</button>
 
+<pre id="voiceList" style="white-space:pre-wrap;user-select:text;background:#0f1b2d;padding:12px;border-radius:10px;color:#dce8f5;"></pre>
+
 <button onclick="confirmClear()" style="background:#c62828;">
 🧹 清空資料
 </button>
@@ -553,6 +555,9 @@ function loadIOSVoice(){
 speechSynthesis.onvoiceschanged = loadIOSVoice;
 
 function showAvailableVoices(){
+  const voiceList = document.getElementById("voiceList");
+  voiceList.textContent = "正在讀取可用英文聲音...";
+
   speechSynthesis.getVoices();
   loadIOSVoice();
 
@@ -562,11 +567,9 @@ function showAvailableVoices(){
       .filter(v => v.lang.startsWith("en"))
       .map(v => `${v.name} | ${v.lang} | ${v.voiceURI}`);
 
-    alert(
-      englishVoices.length
-        ? englishVoices.join("\n\n")
-        : "目前 Safari 還沒有載入英文語音，請再按一次"
-    );
+    voiceList.textContent = englishVoices.length
+      ? englishVoices.join("\n\n")
+      : "目前 Safari 還沒有載入英文語音，請再按一次";
 
     console.log("voices:", voices);
     console.log("iosVoice:", iosVoice);
