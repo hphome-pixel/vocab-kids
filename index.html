@@ -373,6 +373,8 @@ input[type="checkbox"]{
 
 <br><br>
 
+<button onclick="showAvailableVoices()">查看可用英文聲音</button>
+
 <button onclick="confirmClear()" style="background:#c62828;">
 🧹 清空資料
 </button>
@@ -549,6 +551,27 @@ function loadIOSVoice(){
 }
 
 speechSynthesis.onvoiceschanged = loadIOSVoice;
+
+function showAvailableVoices(){
+  speechSynthesis.getVoices();
+  loadIOSVoice();
+
+  setTimeout(()=>{
+    const voices = speechSynthesis.getVoices();
+    const englishVoices = voices
+      .filter(v => v.lang.startsWith("en"))
+      .map(v => `${v.name} | ${v.lang} | ${v.voiceURI}`);
+
+    alert(
+      englishVoices.length
+        ? englishVoices.join("\n\n")
+        : "目前 Safari 還沒有載入英文語音，請再按一次"
+    );
+
+    console.log("voices:", voices);
+    console.log("iosVoice:", iosVoice);
+  },300);
+}
 
 function unlockAudio(){
   if (!("speechSynthesis" in window)) return;
