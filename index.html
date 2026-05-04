@@ -537,6 +537,15 @@ function loadIOSVoice(){
 
 speechSynthesis.onvoiceschanged = loadIOSVoice;
 
+function unlockAudio(){
+  if (!("speechSynthesis" in window)) return;
+
+  const u = new SpeechSynthesisUtterance("");
+  u.lang = "en-US";
+  u.volume = 0;
+  speechSynthesis.speak(u);
+}
+
 document.addEventListener("DOMContentLoaded",()=>{
 
     // ⭐ 強制載入 iOS voices
@@ -582,7 +591,9 @@ document.addEventListener("DOMContentLoaded",()=>{
 
         chi.value=data[0].map(x=>x[0]).join("");
 
-      }catch{}
+      }catch(error){
+        console.warn("翻譯失敗:", error);
+      }
 
     },400);
 
