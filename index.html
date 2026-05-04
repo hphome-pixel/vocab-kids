@@ -407,7 +407,10 @@ function renderWeeks(){
   sel.innerHTML="";
 
   data.weeks.forEach((w,i)=>{
-    sel.innerHTML+=`<option value="${i}">${w.name}</option>`;
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = w.name;
+    sel.appendChild(option);
   });
 
   renderWords();
@@ -453,17 +456,33 @@ function renderWords(){
     const item = document.createElement("div");
     item.className = "word";
 
-    item.innerHTML = `
-      <div class="word-left">
-        <div class="eng">${w.eng}</div>
-        <div class="chi">${w.chi || ""}</div>
-      </div>
+    const left = document.createElement("div");
+    left.className = "word-left";
 
-      <div class="word-right">
-        <button onclick="speak('${w.eng}')">🔊</button>
-        <button onclick="delWord(${i})">🗑️</button>
-      </div>
-    `;
+    const eng = document.createElement("div");
+    eng.className = "eng";
+    eng.textContent = w.eng;
+
+    const chi = document.createElement("div");
+    chi.className = "chi";
+    chi.textContent = w.chi || "";
+
+    const right = document.createElement("div");
+    right.className = "word-right";
+
+    const speakBtn = document.createElement("button");
+    speakBtn.type = "button";
+    speakBtn.textContent = "🔊";
+    speakBtn.addEventListener("click", () => speak(w.eng));
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.type = "button";
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.addEventListener("click", () => delWord(i));
+
+    left.append(eng, chi);
+    right.append(speakBtn, deleteBtn);
+    item.append(left, right);
 
     list.appendChild(item);
   });
@@ -492,6 +511,7 @@ function delWord(i){
 
 /* ===== 翻譯 ===== */
 let timer;
+let iosVoice = null;
 
 function loadIOSVoice(){
 
@@ -516,27 +536,6 @@ function loadIOSVoice(){
 }
 
 speechSynthesis.onvoiceschanged = loadIOSVoice;
-
-
-  const voices = speechSynthesis.getVoices();
-
-  iosVoice =
-
-    voices.find(v =>
-      v.name.includes("Evan") &&
-      v.name.includes("Enhanced")
-    ) ||
-
-    voices.find(v =>
-      v.name.includes("Evan")
-    ) ||
-
-    voices.find(v =>
-      v.lang === "en-US"
-    );
-
-  console.log("iosVoice:", iosVoice);
-};
 
 document.addEventListener("DOMContentLoaded",()=>{
 
@@ -599,12 +598,14 @@ function renderTestWeeks(){
   box.innerHTML = "";
 
   data.weeks.forEach((w, i) => {
-    box.innerHTML += `
-    <label>
-      <input type="checkbox" value="${i}" checked>
-      ${w.name}
-    </label>
-    `;
+    const label = document.createElement("label");
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = i;
+    checkbox.checked = true;
+
+    label.append(checkbox, document.createTextNode(w.name));
+    box.appendChild(label);
   });
 }
 
@@ -631,16 +632,16 @@ function nextQuestion(){
   if(index>=pool.length){
     document.getElementById("quizWrap").classList.add("hidden");
     document.getElementById("result").classList.remove("hidden");
-    document.getElementById("result").innerHTML=`🎯 成績：${score}/${pool.length}`;
+    document.getElementById("result").textContent=`🎯 成績：${score}/${pool.length}`;
     return;
   }
 
   const q=pool[index];
 
-  document.getElementById("quizQuestion").innerHTML=`提示：${q.chi||"聽發音"}`;
+  document.getElementById("quizQuestion").textContent=`提示：${q.chi||"聽發音"}`;
   document.getElementById("ans").value="";
-  document.getElementById("quizAnswer").innerHTML="";
-  document.getElementById("quizProgress").innerHTML=`${index+1}/${pool.length}`;
+  document.getElementById("quizAnswer").textContent="";
+  document.getElementById("quizProgress").textContent=`${index+1}/${pool.length}`;
 
   document.getElementById("listenBtn").onclick=()=>speak(q.eng);
 }
@@ -652,10 +653,10 @@ document.getElementById("submitBtn").onclick=()=>{
 
   if(input===correct){
     score++;
-    result.innerHTML="✅ 正確";
+    result.textContent="✅ 正確";
     result.className="correct";
   }else{
-    result.innerHTML=`❌ 正確答案：${correct}`;
+    result.textContent=`❌ 正確答案：${correct}`;
     result.className="wrong";
   }
 
@@ -705,7 +706,10 @@ function renderReadPage(){
 
   // 填入 week 選單
   data.weeks.forEach((w,i)=>{
-    sel.innerHTML += `<option value="${i}">${w.name}</option>`;
+    const option = document.createElement("option");
+    option.value = i;
+    option.textContent = w.name;
+    sel.appendChild(option);
   });
 
   // 切換時更新
@@ -722,21 +726,32 @@ function renderReadWords(){
   list.innerHTML = "";
 
   data.weeks[idx].words.forEach((w,i)=>{
-    list.innerHTML += `
-    <div class="card-item" id="card-${i}">
-      
-      <div class="row">
-        <div class="eng" onclick="toggleCard(${i})">${w.eng}</div>
+    const card = document.createElement("div");
+    card.className = "card-item";
+    card.id = "card-" + i;
 
-        <!-- ⭐ 發音按鈕 -->
-        <button onclick='speak("${w.eng}")'>🔊</button>
-      </div>
+    const row = document.createElement("div");
+    row.className = "row";
 
-      <div class="chi hidden" id="chi-${i}" onclick="toggleCard(${i})">
-        ${w.chi || ""}
-      </div>
+    const eng = document.createElement("div");
+    eng.className = "eng";
+    eng.textContent = w.eng;
+    eng.addEventListener("click", () => toggleCard(i));
 
-    </div>`;
+    const speakBtn = document.createElement("button");
+    speakBtn.type = "button";
+    speakBtn.textContent = "🔊";
+    speakBtn.addEventListener("click", () => speak(w.eng));
+
+    const chi = document.createElement("div");
+    chi.className = "chi hidden";
+    chi.id = "chi-" + i;
+    chi.textContent = w.chi || "";
+    chi.addEventListener("click", () => toggleCard(i));
+
+    row.append(eng, speakBtn);
+    card.append(row, chi);
+    list.appendChild(card);
   });
 }
 
@@ -752,8 +767,6 @@ function toggleCard(i){
 }
 
 let autoTimer = null;
-
-let iosVoice = null;
 
 function autoPlay(){
   const idx = document.getElementById("readWeek").value;
