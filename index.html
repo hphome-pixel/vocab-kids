@@ -48,21 +48,18 @@ input,select{
   margin-top:10px;
   border-radius:12px;
   display:flex;
-  justify-content:space-between;
-  align-items:center; 
+  flex-direction:column;
+  gap:8px;
 }
 
 .chi{
-  margin-left:auto;      /* ⭐ 推到右邊 */
-  margin-right:5px;      /* ⭐ 微調靠近 icon */
   color:#9fb3c8;
   font-size:16px;
 }
 .word button{
-  width:45px;
-  height:45px;
+  width:42px;
+  height:42px;
   padding:0;
-  margin-left:8px;
 }
 
 html, body{
@@ -104,19 +101,46 @@ body{
 
 .word-right{
   display:flex;
-  gap:10px;   /* ⭐ icon 左右排 */
+  gap:8px;   /* ⭐ icon 左右排 */
+  margin-left:auto;
+  flex-shrink:0;
 }
 
 .word button{
-  width:50px;
-  height:50px;
+  width:42px;
+  height:42px;
 }
 
 .word-left{
   display:flex;
-  align-items:baseline;  
-  gap:10px;
+  flex-direction:column;
+  gap:6px;
   flex:1;
+  min-width:0;
+}
+
+.word-top{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  width:100%;
+}
+
+.word .chi{
+  margin:0;
+  line-height:1.3;
+}
+
+@media (max-width:480px){
+  .word button{
+    width:40px;
+    height:40px;
+    font-size:14px;
+  }
+
+  .word .eng{
+    font-size:24px;
+  }
 }
 
 input[type="checkbox"]{
@@ -501,6 +525,9 @@ function renderWords(){
     const item = document.createElement("div");
     item.className = "word";
 
+    const top = document.createElement("div");
+    top.className = "word-top";
+
     const left = document.createElement("div");
     left.className = "word-left";
 
@@ -536,7 +563,8 @@ function renderWords(){
       right.append(speakZHBtn);
     }
     right.append(deleteBtn);
-    item.append(left, right);
+    top.append(left, right);
+    item.append(top);
 
     list.appendChild(item);
   });
