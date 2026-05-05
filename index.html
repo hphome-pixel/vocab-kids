@@ -390,6 +390,26 @@ input[type="checkbox"]{
 
 <pre id="voiceList" style="white-space:pre-wrap;user-select:text;background:#0f1b2d;padding:12px;border-radius:10px;color:#dce8f5;"></pre>
 
+<div class="action-bar">
+  <div onclick="exportData()">
+    <div>⬇️</div>
+    <div>匯出</div>
+  </div>
+
+  <div onclick="document.getElementById('importFile').click()">
+    <div>⬆️</div>
+    <div>匯入</div>
+  </div>
+</div>
+
+<input
+  id="importFile"
+  type="file"
+  accept=".json,application/json"
+  class="hidden"
+  onchange="importData(this.files[0]); this.value='';"
+>
+
 <button onclick="confirmClear()" style="background:#c62828;">
 🧹 清空資料
 </button>
@@ -756,6 +776,74 @@ document.getElementById("nextBtn").onclick=()=>{
   document.getElementById("nextBtn").classList.add("hidden");
   nextQuestion();
 };
+
+/* ===== 匯入 / 匯出 ===== */
+function exportData(){
+  const blob = new Blob(
+    [JSON.stringify(data,null,2)],
+    { type:"application/json" }
+  );
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  const date = new Date().toISOString().slice(0,10);
+
+  a.href = url;
+  a.download = `vocab-kids-${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function isValidImportData(value){
+  return (
+    value &&
+    Array.isArray(value.weeks) &&
+    value.weeks.every(week =>
+      typeof week.name === "string" &&
+      Array.isArray(week.words) &&
+      week.words.every(word =>
+        typeof word.eng === "string" &&
+        (typeof word.chi === "string" || word.chi === undefined)
+      )
+    )
+  );
+}
+
+function importData(file){
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = ()=>{
+    try{
+      const imported = JSON.parse(reader.result);
+
+      if(!isValidImportData(imported)){
+        alert("匯入失敗：JSON 格式不正確");
+        return;
+      }
+
+      if(!confirm("匯入後會覆蓋目前所有單字資料，要繼續嗎？")){
+        return;
+      }
+
+      data = imported;
+      current = 0;
+      save();
+      renderWeeks();
+
+      if(!document.getElementById("readPage").classList.contains("hidden")){
+        renderReadPage();
+      }
+
+      alert("匯入完成");
+    }catch(error){
+      console.warn("匯入失敗:", error);
+      alert("匯入失敗：無法讀取 JSON");
+    }
+  };
+
+  reader.readAsText(file);
+}
 
 /* ===== 清空 ===== */
 function confirmClear(){
