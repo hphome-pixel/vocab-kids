@@ -374,6 +374,18 @@ input[type="checkbox"]{
 
 <br><br>
 
+<label for="speechRate">英文發音速度</label>
+<input
+  id="speechRate"
+  type="range"
+  min="0.6"
+  max="1.0"
+  step="0.02"
+  oninput="updateSpeechRate(this.value)"
+>
+<div id="speechRateValue">0.84x</div>
+<button onclick="speak('apple')">試聽 apple</button>
+
 <button onclick="showAvailableVoices()">查看可用英文聲音</button>
 
 <pre id="voiceList" style="white-space:pre-wrap;user-select:text;background:#0f1b2d;padding:12px;border-radius:10px;color:#dce8f5;"></pre>
@@ -517,6 +529,27 @@ function delWord(i){
 /* ===== 翻譯 ===== */
 let timer;
 let iosVoice = null;
+let speechRate = Number(localStorage.getItem("speechRate")) || 0.84;
+
+function updateSpeechRate(value){
+  speechRate = Number(value);
+  localStorage.setItem("speechRate", speechRate);
+
+  const valueEl = document.getElementById("speechRateValue");
+  if(valueEl){
+    valueEl.textContent = speechRate.toFixed(2) + "x";
+  }
+}
+
+function renderSpeechRateSetting(){
+  const slider = document.getElementById("speechRate");
+
+  if(slider){
+    slider.value = speechRate;
+  }
+
+  updateSpeechRate(speechRate);
+}
 
 function pickBestEnglishVoice(){
   const voices = speechSynthesis.getVoices();
@@ -594,6 +627,7 @@ document.addEventListener("DOMContentLoaded",()=>{
   setTimeout(loadIOSVoice, 300);
   setTimeout(loadIOSVoice, 1000);
   setTimeout(loadIOSVoice, 2000);
+  renderSpeechRateSetting();
 
   // ⭐ iPhone 第一次觸碰解鎖音訊
   document.body.addEventListener(
@@ -939,6 +973,8 @@ function playGoogleTTS(text, lang){
     audioPlayer.src = url;
   }
 
+  audioPlayer.playbackRate = lang === "en" ? speechRate : 1;
+
   return audioPlayer.play();
 }
 
@@ -963,7 +999,7 @@ function speak(text){
       }
 
       u.lang = iosVoice?.lang || "en-US";
-      u.rate = 0.84;
+      u.rate = speechRate;
       u.pitch = 1.05;
       u.volume = 1;
 
@@ -982,7 +1018,7 @@ function speak(text){
     const u = new SpeechSynthesisUtterance(text);
 
     u.lang = "en-US";
-    u.rate = 0.92;
+    u.rate = speechRate;
 
     speechSynthesis.speak(u);
   });
