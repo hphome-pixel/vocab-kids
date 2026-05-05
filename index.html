@@ -158,12 +158,20 @@ input[type="checkbox"]{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  gap:12px;
 }
 
 .row button{
   width:50px;
   height:50px;
   padding:0;
+}
+
+.read-actions{
+  display:flex;
+  gap:12px;
+  margin-left:auto;
+  flex-shrink:0;
 }
 
 .card-item:active{
@@ -936,16 +944,20 @@ function renderReadWords(){
     speakZHBtn.textContent = "中";
     speakZHBtn.addEventListener("click", () => speakZH(w.chi));
 
+    const actions = document.createElement("div");
+    actions.className = "read-actions";
+
     const chi = document.createElement("div");
     chi.className = "chi hidden";
     chi.id = "chi-" + i;
     chi.textContent = w.chi || "";
     chi.addEventListener("click", () => toggleCard(i));
 
-    row.append(eng, speakBtn);
+    actions.append(speakBtn);
     if(w.chi){
-      row.append(speakZHBtn);
+      actions.append(speakZHBtn);
     }
+    row.append(eng, actions);
     card.append(row, chi);
     list.appendChild(card);
   });
