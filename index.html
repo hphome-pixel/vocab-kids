@@ -809,6 +809,7 @@ document.getElementById("submitBtn").onclick=()=>{
     result.textContent="✅ 正確";
     result.className="correct";
   }else{
+    addWrongWord(pool[index]);
     result.textContent=`❌ 正確答案：${correct}`;
     result.className="wrong";
   }
@@ -822,8 +823,30 @@ document.getElementById("nextBtn").onclick=()=>{
   nextQuestion();
 };
 
+function addWrongWord(word){
+  let wrongWeek = data.weeks.find(w => w.name === "錯題");
+
+  if(!wrongWeek){
+    wrongWeek = { name:"錯題", words:[] };
+    data.weeks.push(wrongWeek);
+  }
+
+  const exists = wrongWeek.words.some(w =>
+    w.eng.trim().toLowerCase() === word.eng.trim().toLowerCase()
+  );
+
+  if(!exists){
+    wrongWeek.words.push({
+      eng: word.eng,
+      chi: word.chi || ""
+    });
+    save();
+    renderWeeks();
+  }
+}
+
 /* ===== 匯入 / 匯出 ===== */
-function exportData(){
+function exportData(prefix = "vocab-kids"){
   const blob = new Blob(
     [JSON.stringify(data,null,2)],
     { type:"application/json" }
@@ -833,9 +856,13 @@ function exportData(){
   const date = new Date().toISOString().slice(0,10);
 
   a.href = url;
-  a.download = `vocab-kids-${date}.json`;
+  a.download = `${prefix}-${date}.json`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function backupBeforeImport(){
+  exportData("vocab-kids-backup-before-import");
 }
 
 function isValidImportData(value){
@@ -870,6 +897,8 @@ function importData(file){
       if(!confirm("匯入後會覆蓋目前所有單字資料，要繼續嗎？")){
         return;
       }
+
+      backupBeforeImport();
 
       data = imported;
       current = 0;
