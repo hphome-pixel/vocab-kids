@@ -512,13 +512,22 @@ function renderWords(){
     speakBtn.textContent = "🔊";
     speakBtn.addEventListener("click", () => speak(w.eng));
 
+    const speakZHBtn = document.createElement("button");
+    speakZHBtn.type = "button";
+    speakZHBtn.textContent = "中";
+    speakZHBtn.addEventListener("click", () => speakZH(w.chi));
+
     const deleteBtn = document.createElement("button");
     deleteBtn.type = "button";
     deleteBtn.textContent = "🗑️";
     deleteBtn.addEventListener("click", () => delWord(i));
 
     left.append(eng, chi);
-    right.append(speakBtn, deleteBtn);
+    right.append(speakBtn);
+    if(w.chi){
+      right.append(speakZHBtn);
+    }
+    right.append(deleteBtn);
     item.append(left, right);
 
     list.appendChild(item);
@@ -922,6 +931,11 @@ function renderReadWords(){
     speakBtn.textContent = "🔊";
     speakBtn.addEventListener("click", () => speak(w.eng));
 
+    const speakZHBtn = document.createElement("button");
+    speakZHBtn.type = "button";
+    speakZHBtn.textContent = "中";
+    speakZHBtn.addEventListener("click", () => speakZH(w.chi));
+
     const chi = document.createElement("div");
     chi.className = "chi hidden";
     chi.id = "chi-" + i;
@@ -929,6 +943,9 @@ function renderReadWords(){
     chi.addEventListener("click", () => toggleCard(i));
 
     row.append(eng, speakBtn);
+    if(w.chi){
+      row.append(speakZHBtn);
+    }
     card.append(row, chi);
     list.appendChild(card);
   });
