@@ -378,13 +378,13 @@ input[type="checkbox"]{
 <input
   id="speechRate"
   type="range"
-  min="0.6"
-  max="1.0"
-  step="0.02"
+  min="0.4"
+  max="1.4"
+  step="0.05"
   oninput="updateSpeechRate(this.value)"
 >
 <div id="speechRateValue">0.84x</div>
-<button onclick="speak('apple')">試聽 apple</button>
+<button onclick="testSpeechRate()">試聽發音速度</button>
 
 <button onclick="showAvailableVoices()">查看可用英文聲音</button>
 
@@ -530,6 +530,7 @@ function delWord(i){
 let timer;
 let iosVoice = null;
 let speechRate = Number(localStorage.getItem("speechRate")) || 0.84;
+speechRate = Math.min(1.4, Math.max(0.4, speechRate));
 
 function updateSpeechRate(value){
   speechRate = Number(value);
@@ -549,6 +550,10 @@ function renderSpeechRateSetting(){
   }
 
   updateSpeechRate(speechRate);
+}
+
+function testSpeechRate(){
+  speak("Congratulations, vocabulary practice is getting better every day");
 }
 
 function pickBestEnglishVoice(){
