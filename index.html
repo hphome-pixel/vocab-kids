@@ -361,7 +361,8 @@ input[type="checkbox"]{
 
   <select id="readWeek"></select>
 
-  <button onclick="autoPlay()">▶ 自動播放</button>
+  <button id="autoPlayBtn" onclick="toggleAutoPlay()">▶ 播放</button>
+  <button onclick="stopAutoPlay()">■ 停止</button>
 
   <div id="readList"></div>
 </div>
@@ -761,7 +762,10 @@ function renderReadPage(){
   });
 
   // 切換時更新
-  sel.onchange = renderReadWords;
+  sel.onchange = ()=>{
+    stopAutoPlay();
+    renderReadWords();
+  };
 
   // 預設顯示
   renderReadWords();
@@ -815,50 +819,108 @@ function toggleCard(i){
 }
 
 let autoTimer = null;
+let autoIndex = 0;
+let isAutoPlaying = false;
+
+function updateAutoPlayButton(){
+  const btn = document.getElementById("autoPlayBtn");
+  if(btn){
+    btn.textContent = isAutoPlaying ? "⏸ 暫停" : "▶ 播放";
+  }
+}
+
+function clearReadHighlight(){
+  document.querySelectorAll(".chi").forEach(c=>{
+    c.classList.add("hidden");
+  });
+
+  document.querySelectorAll(".card-item").forEach(c=>{
+    c.style.background = "#0f1b2d";
+  });
+}
+
+function stopCurrentAudio(){
+  audioPlayer.pause();
+  audioPlayer.currentTime = 0;
+
+  if(speechSynthesis.speaking){
+    speechSynthesis.cancel();
+  }
+}
+
+function playReadWord(i, words){
+  clearReadHighlight();
+
+  speakWord(words[i]);
+
+  const el = document.getElementById("chi-" + i);
+  if(el){
+    el.classList.remove("hidden");
+  }
+
+  const card = document.getElementById("card-" + i);
+  if(card){
+    card.style.background = "#1f3b5c";
+  }
+}
+
+function finishAutoPlay(){
+  clearInterval(autoTimer);
+  autoTimer = null;
+  isAutoPlaying = false;
+  autoIndex = 0;
+  updateAutoPlayButton();
+}
+
+function toggleAutoPlay(){
+  if(isAutoPlaying){
+    clearInterval(autoTimer);
+    autoTimer = null;
+    isAutoPlaying = false;
+    stopCurrentAudio();
+    updateAutoPlayButton();
+    return;
+  }
+
+  autoPlay();
+}
+
+function stopAutoPlay(){
+  clearInterval(autoTimer);
+  autoTimer = null;
+  isAutoPlaying = false;
+  autoIndex = 0;
+  stopCurrentAudio();
+  clearReadHighlight();
+  updateAutoPlayButton();
+}
 
 function autoPlay(){
   const idx = document.getElementById("readWeek").value;
   const words = data.weeks[idx].words;
 
-  let i = 0;
+  if(words.length === 0) return;
 
   // 清掉之前的播放
   clearInterval(autoTimer);
+  isAutoPlaying = true;
+  updateAutoPlayButton();
+
+  if(autoIndex >= words.length){
+    autoIndex = 0;
+  }
+
+  playReadWord(autoIndex, words);
+  autoIndex++;
 
   autoTimer = setInterval(() => {
-
-    // 結束條件
-    if(i >= words.length){
-      clearInterval(autoTimer);
+    if(autoIndex >= words.length){
+      finishAutoPlay();
       return;
     }
 
-    // ⭐ 先清空所有中文（避免全部顯示）
-    document.querySelectorAll(".chi").forEach(c=>{
-      c.classList.add("hidden");
-    });
-
-    // ⭐ 先移除所有高亮
-    document.querySelectorAll(".card-item").forEach(c=>{
-      c.style.background = "#0f1b2d";
-    });
-
-    // ⭐ 播放英文
-    speakWord(words[i]);
-
-    // ⭐ 顯示中文
-    const el = document.getElementById("chi-" + i);
-    if(el){
-      el.classList.remove("hidden");
-    }
-
-    // ⭐ 高亮目前卡片
-    const card = document.getElementById("card-" + i);
-    if(card){
-      card.style.background = "#1f3b5c";
-    }
-
-    i++;
+    playReadWord(autoIndex, words);
+    autoIndex++;
 
   }, 3500); // 每 3.5 秒
 }
